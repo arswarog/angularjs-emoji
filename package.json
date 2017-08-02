@@ -1,9 +1,10 @@
 {
   "name": "angularjs-emoji",
-  "version": "0.1.0",
+  "version": "0.0.2",
   "description": "Emoji filter and picker for angular 1.x",
   "main": "src/index.js",
   "scripts": {
+    "build": "node build/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -14,10 +15,8 @@
     "angular",
     "angularjs",
     "emoji",
-    "emoji",
-    "picker",
-    "emoji",
-    "filter"
+    "emoji-picker",
+    "emoji-filter"
   ],
   "author": "Arswarog <arswarog@yandex.ru>",
   "license": "MIT",
