@@ -1,5 +1,5 @@
 import angular from 'angular';
-import perfect_scrollbar from 'angular-perfect-scrollbar';
+import perfect_scrollbar from 'angularjs-perfect-scrollbar';
 
 let template = `
 <div
@@ -51,8 +51,9 @@ export default angular.module('arswarog.emoji.container', [perfect_scrollbar])
         let timer = false;
         $scope.smiles = Emoji.getCategory();
 
-        $scope.emojiClick = function (e) {
-          Emoji.addRecentEmoji(e);
+        $scope.emojiClick = function (emoji) {
+          Emoji.addRecentEmoji(emoji);
+          console.log(emoji);
         }
 
         $scope.onCategoryMouseOver = function (cat) {

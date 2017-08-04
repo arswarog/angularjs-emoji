@@ -1,6 +1,6 @@
 {
   "name": "angularjs-emoji",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Emoji filter and picker for angular 1.x",
   "main": "src/index.js",
   "scripts": {
