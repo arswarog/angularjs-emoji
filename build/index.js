@@ -1,5 +1,8 @@
-var request = require('request');
-var fs = require('fs');
+// TODO 2. isMax
+// TODO 3. tests
+
+let request = require('request');
+let fs = require('fs');
 let data = {};
 let src = 'https://unpkg.com/emoji-datasource-apple@3.0.0/img/apple/sheets/64.png';
 let size = 16;
@@ -37,11 +40,13 @@ request(src).pipe(
 );
 
 function convertHexToString(input) {
-
-  let output = String.fromCodePoint(parseInt(input, 16));// + String.fromCharCode(parseInt(input, 16) % 65536);
-
+  console.log(' < ', input, input.match(/((.{4})+?|(.{1,4})$)/g));
+  let output = input
+    .match(/((.{4})+?|(.{1,4})$)/g)
+    .map((part) => String.fromCodePoint(parseInt(part, 16)))
+    .join('');
+  console.log(' > ', output);
   // console.log(parseInt(input, 16), `${input} => ${output}`);
-
   return output;
 }
 
@@ -81,23 +86,50 @@ request.get('https://raw.githubusercontent.com/iamcal/emoji-data/master/emoji_pr
   });
 
   let skins = [
-    '1F3FB', '1F3FC', '1F3FD', '1F3FE', '1F3FF',
+    '1f3fb', '1f3fc', '1f3fd', '1f3fe', '1f3ff',
   ];
 
+  let codes = {};
 
   asd:
     for (let i in data) {
       let item = {
-        utf: convertHexToString(data[i].unified),
         category: data[i].category,
         name: data[i].name,
-        unified: data[i].unified,
+        unified: data[i].unified.toLowerCase(),
         variations: data[i].variations,
-        short: data[i].short_name,
+        short: data[i].short_name.toLowerCase(),
         shorts: data[i].short_names,
         text: data[i].text,
         texts: data[i].texts,
+        x: data[i].sheet_x,
+        y: data[i].sheet_y,
       };
+
+      let utf16 = '';
+
+      item.unified.split('-').forEach(code => {
+        let num = parseInt(code, 16);
+
+        if (num < 0x10000) {
+          utf16 += code;
+          codes[code.substr(0, 3)] = 1;
+        } else if (num < 0x80000) {
+          utf16 += (0xD800 + ((num & 0xffc00 - 0x10000) >>> 10)).toString(16).toLowerCase();
+          utf16 += (0xDC00 + (num & 0x3ff)).toString(16).toLowerCase();
+          codes[(0xD800 + ((num & 0xffc00 - 0x10000) >>> 10)).toString(16).toLowerCase().substr(0, 3)] = 1;
+          codes[(0xDC00 + (num & 0x3ff)).toString(16).toLowerCase().substr(0, 3)] = 1;
+        }
+        else throw new Error(`Can not encode "${code}" to 6-bytes utf16`);
+      });
+
+      console.log(item.unified, utf16);
+
+      // let code = parseInt(data.)
+
+      item.utf16 = utf16;
+      item.utf = convertHexToString(item.utf16);
+
 
       if ('skin_variations' in data[i]) {
         item.skins = true;
@@ -142,17 +174,15 @@ request.get('https://raw.githubusercontent.com/iamcal/emoji-data/master/emoji_pr
         // break;
       }
 
-      let x = Math.round(100000 / 48 * data[i].sheet_x) / 1000;
-      let y = Math.round(100000 / 48 * data[i].sheet_y) / 1000;
+      let x = Math.round(100000 / 48 * item.x) / 1000;
+      let y = Math.round(100000 / 48 * item.y) / 1000;
       let pos = `${x}% ${y}%`;
 
       categories[item.category] = categories[item.category] ? categories[item.category] + 1 : 1;
-      css += `.emoji.emoji-${item.short} { background-position: ${pos}; }\n`;
+      // css += `.emoji.emoji-${item.short} { background-position: ${pos}; }\n`;
       css += `.emoji.emoji-${item.unified} { background-position: ${pos}; }\n`;
 
       delete item.sort_order;
-      delete item.sheet_x;
-      delete item.sheet_y;
 
       if (item.category !== 'Skin Tones') {
         if (!(item.category in outdata))
@@ -185,5 +215,35 @@ request.get('https://raw.githubusercontent.com/iamcal/emoji-data/master/emoji_pr
   let outlen = outdatafile.length;
   console.log(`from ${inlen} to ${outlen}`);
   console.log(Math.round(outlen * 100 / inlen) + '%');
+
+  let codelist = [];
+  for (let key in codes) codelist.push(key);
+
+  codelist = codelist.sort((a, b) => parseInt(a, 16) - parseInt(b, 16));
+
+  console.log(codelist);
+
+  let regexp = [];
+
+  let ranges = [];
+  let lastcode = false;
+  let start = codelist[0];
+  for (let code of codelist) {
+    // console.log('last %s, cur %s', lastcode.toString(16), code);
+    if (lastcode !== false) {
+      if (parseInt(code, 16) > lastcode + 3) {
+        console.log('range %s - %s', start, lastcode.toString(16), (lastcode - parseInt(start, 16) +1));
+        regexp.push("\\"+"u"+start+'0-\\'+'u'+lastcode.toString(16)+'f');
+        start = code;
+      } else {
+        // console.log('is next');
+      }
+    }
+    lastcode = parseInt(code, 16);
+  }
+  // regexp.push("\\"+"u"+start+'0-\\'+'u'+lastcode.toString(16)+'f');
+  regexp.push("\\ufe0f");
+  console.log('range %s - %s', start, lastcode.toString(16), (lastcode - parseInt(start, 16) +1));
+
+  console.log('regexp: ', regexp.join(''));
 })
-;

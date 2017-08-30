@@ -1,15 +1,22 @@
 import angular from 'angular';
 import data from '../lib/data';
 import container from './container';
+import input from './input';
+import out from './out';
 
 class EmojiService {
   constructor() {
     this.data = data;
     this.categories = ['Recent'];
     this.recent = [];
+    this.index = {};
 
-    for (let i in this.data)
+    for (let i in this.data) {
       this.categories.push(i);
+      this.data[i].forEach(item => {
+        this.index[item.unified] = item;
+      });
+    }
   }
 
   getRecent(count) {
@@ -77,6 +84,6 @@ class EmojiService {
   }
 }
 
-export default angular.module('arswarog.emoji', [container])
+export default angular.module('arswarog.emoji.service', [container, input, out])
   .service('Emoji', EmojiService)
   .name;

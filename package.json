@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "build": "node build/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/mocha/bin/mocha -r should -R spec"
   },
   "repository": {
     "type": "git",
@@ -23,5 +23,15 @@
   "bugs": {
     "url": "https://github.com/arswarog/angularjs-emoji/issues"
   },
-  "homepage": "https://github.com/arswarog/angularjs-emoji#readme"
+  "homepage": "https://github.com/arswarog/angularjs-emoji#readme",
+  "devDependencies": {
+    "request": "^2.81.0",
+    "mocha": "^3.4.2",
+    "should": "^11.2.1",
+    "supertest": "^3.0.0"
+  },
+  "dependencies": {
+    "angular": "^1.6.5",
+    "angularjs-perfect-scrollbar": "0.0.5"
+  }
 }
