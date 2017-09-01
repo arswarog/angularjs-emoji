@@ -8,6 +8,7 @@ class EmojiService {
     this.recent = [];
     this.index = {};
     this.utf16 = {};
+    this._container;
 
     for (let i in this.data) {
       this.categories.push(i);
@@ -116,6 +117,23 @@ class EmojiService {
 
     return this.data[name];
   }
+
+  set container(container) {
+    this._container = container;
+  }
+
+  get container() {
+    return this._container;
+  }
+
+  showContainer(callback, element, orientation) {
+    this._container.showContainer((e) => callback(e), element, orientation);
+  }
+
+  cancelContainer() {
+    this._container.cancelContainer();
+  }
+
 }
 
 export default angular.module('arswarog.emoji.service', [])

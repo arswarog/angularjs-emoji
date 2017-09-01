@@ -1,0 +1,101 @@
+.pretty-input {
+    display: inline-block;
+    width: 100%;
+    position: relative;
+}
+
+.pretty-input .emoji-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    cursor: pointer;
+    color: #8bc34a;
+    width: 16px;
+    font-size: 2em;
+}
+
+.pretty-input .message-text {
+    min-height: 40px;
+    vertical-align: middle;
+    outline: 0;
+    resize: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 3px;
+    line-height: 17px;
+    padding: 10px 32px 10px 11px;
+    margin-bottom: 0;
+    word-wrap: break-word;
+    box-sizing: border-box;
+    -webkit-box-flex: 1;
+    -ms-flex-positive: 1;
+    flex-grow: 1;
+    -ms-flex-negative: 0;
+    flex-shrink: 0;
+    width: 100%;
+    background-color: transparent;
+}
+
+.pretty-input .message-text:empty:before {
+    content: attr(placeholder);
+}
+
+/*.smilesContainer {*/
+    /*position: absolute;*/
+    /*height: 224px;*/
+    /*width: 264px;*/
+    /*border: solid 1px #d3d9de;*/
+    /*border-radius: 3px;*/
+    /*background: #fff;*/
+    /*display: none;*/
+    /*z-index: 10000;*/
+/*}*/
+
+/*.smilesCollection {*/
+    /*position: relative;*/
+    /*border-bottom: solid 1px #d3d9de;*/
+    /*height: 190px;*/
+    /*padding: 2px 4px;*/
+/*}*/
+
+/*.smilesCollection i {*/
+    /*cursor: pointer;*/
+    /*margin: 4px;*/
+    /*width: 20px;*/
+    /*height: 20px;*/
+
+/*}*/
+
+/*.collections {*/
+    /*height: 28px;*/
+    /*padding-top: 4px;*/
+/*}*/
+
+/*.collections i {*/
+    /*display: inline-block;*/
+    /*width: 24px;*/
+    /*height: 24px;*/
+    /*margin: 0 1px;*/
+    /*cursor: pointer;*/
+    /*background-image: url('/static/emoji/categories.png');*/
+/*}*/
+
+/*.smilesContainer.smile24 {*/
+    /*width: 300px;*/
+    /*height: 248px;*/
+/*}*/
+
+/*.smilesContainer.smile24 .smilesCollection {*/
+    /*height: 214px;*/
+/*}*/
+
+/*.smilesContainer.smile24 i {*/
+    /*width: 24px;*/
+    /*height: 24px;*/
+
+/*}*/
+
+/*.smilesContainer.smile24 .collections i {*/
+    /*margin: 0 3px;*/
+
+/*}*/
