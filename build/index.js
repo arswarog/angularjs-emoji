@@ -127,8 +127,8 @@ request.get('https://raw.githubusercontent.com/iamcal/emoji-data/master/emoji_pr
 
       // let code = parseInt(data.)
 
-      item.utf16 = utf16;
-      item.utf = convertHexToString(item.utf16);
+      item.utf16 = [utf16];
+      item.utf = convertHexToString(item.utf16[0]);
 
 
       if ('skin_variations' in data[i]) {

@@ -66,3 +66,25 @@
     /*margin: 0 3px;*/
 }
 
+.emoji {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    contenteditable: false;
+    background-size: 4900%;
+    background-image: url('../images/emoji.png');
+    background-repeat: no-repeat;
+    margin: -2px 2px 0 2px;
+    padding-bottom: -5px;
+    vertical-align: middle;
+    text-indent: -9999px;
+    border: 0;
+}
+.emoji.emoji16 {
+    width: 16px;
+    height: 16px;
+}
+.emoji.emoji24 {
+    width: 24px;
+    height: 24px;
+}
