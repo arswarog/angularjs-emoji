@@ -6,6 +6,7 @@ let fs = require('fs');
 let data = {};
 let src = 'https://unpkg.com/emoji-datasource-apple@3.0.0/img/apple/sheets/64.png';
 let size = 16;
+let codes = {};
 
 let categories = {};
 
@@ -35,9 +36,9 @@ css += `.emoji {
 }
 `;
 
-request(src).pipe(
-  fs.createWriteStream(process.cwd() + "/images/emoji.png")
-);
+// request(src).pipe(
+  // fs.createWriteStream(process.cwd() + "/images/emoji.png")
+// );
 
 function convertHexToString(input) {
   console.log(' < ', input, input.match(/((.{4})+?|(.{1,4})$)/g));
@@ -48,6 +49,25 @@ function convertHexToString(input) {
   console.log(' > ', output);
   // console.log(parseInt(input, 16), `${input} => ${output}`);
   return output;
+}
+
+function toUtf16(unified) {
+  let utf16 = '';
+  unified.split('-').forEach(code => {
+    let num = parseInt(code, 16);
+
+    if (num < 0x10000) {
+      utf16 += code;
+      codes[code.substr(0, 3)] = 1;
+    } else if (num < 0x80000) {
+      utf16 += (0xD800 + ((num & 0xffc00 - 0x10000) >>> 10)).toString(16).toLowerCase();
+      utf16 += (0xDC00 + (num & 0x3ff)).toString(16).toLowerCase();
+      codes[(0xD800 + ((num & 0xffc00 - 0x10000) >>> 10)).toString(16).toLowerCase().substr(0, 3)] = 1;
+      codes[(0xDC00 + (num & 0x3ff)).toString(16).toLowerCase().substr(0, 3)] = 1;
+    }
+    else throw new Error(`Can not encode "${code}" to 6-bytes utf16`);
+  });
+  return utf16;
 }
 
 request.get('https://raw.githubusercontent.com/iamcal/emoji-data/master/emoji_pretty.json', (error, resp, body) => {
@@ -89,8 +109,6 @@ request.get('https://raw.githubusercontent.com/iamcal/emoji-data/master/emoji_pr
     '1f3fb', '1f3fc', '1f3fd', '1f3fe', '1f3ff',
   ];
 
-  let codes = {};
-
   asd:
     for (let i in data) {
       let item = {
@@ -106,26 +124,9 @@ request.get('https://raw.githubusercontent.com/iamcal/emoji-data/master/emoji_pr
         y: data[i].sheet_y,
       };
 
-      let utf16 = '';
-
-      item.unified.split('-').forEach(code => {
-        let num = parseInt(code, 16);
-
-        if (num < 0x10000) {
-          utf16 += code;
-          codes[code.substr(0, 3)] = 1;
-        } else if (num < 0x80000) {
-          utf16 += (0xD800 + ((num & 0xffc00 - 0x10000) >>> 10)).toString(16).toLowerCase();
-          utf16 += (0xDC00 + (num & 0x3ff)).toString(16).toLowerCase();
-          codes[(0xD800 + ((num & 0xffc00 - 0x10000) >>> 10)).toString(16).toLowerCase().substr(0, 3)] = 1;
-          codes[(0xDC00 + (num & 0x3ff)).toString(16).toLowerCase().substr(0, 3)] = 1;
-        }
-        else throw new Error(`Can not encode "${code}" to 6-bytes utf16`);
-      });
+      let utf16 = toUtf16(item.unified);
 
       console.log(item.unified, utf16);
-
-      // let code = parseInt(data.)
 
       item.utf16 = [utf16];
       item.utf = convertHexToString(item.utf16[0]);
@@ -232,8 +233,8 @@ request.get('https://raw.githubusercontent.com/iamcal/emoji-data/master/emoji_pr
     // console.log('last %s, cur %s', lastcode.toString(16), code);
     if (lastcode !== false) {
       if (parseInt(code, 16) > lastcode + 3) {
-        console.log('range %s - %s', start, lastcode.toString(16), (lastcode - parseInt(start, 16) +1));
-        regexp.push("\\"+"u"+start+'0-\\'+'u'+lastcode.toString(16)+'f');
+        console.log('range %s - %s', start, lastcode.toString(16), (lastcode - parseInt(start, 16) + 1));
+        regexp.push("\\" + "u" + start + '0-\\' + 'u' + lastcode.toString(16) + 'f');
         start = code;
       } else {
         // console.log('is next');
@@ -243,7 +244,7 @@ request.get('https://raw.githubusercontent.com/iamcal/emoji-data/master/emoji_pr
   }
   // regexp.push("\\"+"u"+start+'0-\\'+'u'+lastcode.toString(16)+'f');
   regexp.push("\\ufe0f");
-  console.log('range %s - %s', start, lastcode.toString(16), (lastcode - parseInt(start, 16) +1));
+  console.log('range %s - %s', start, lastcode.toString(16), (lastcode - parseInt(start, 16) + 1));
 
   console.log('regexp: ', regexp.join(''));
 })
