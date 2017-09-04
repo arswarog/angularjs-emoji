@@ -45,7 +45,10 @@ module.exports = class Builder {
         texts: data.texts,
         x: data.sheet_x,
         y: data.sheet_y,
+        pid: data.sheet_x * 49 + data.sheet_y,
       };
+
+      if (data.sheet_y >= 49) throw new Error('Rows more 49!');
 
       let utf16 = this.toUtf16(item.unified);
 

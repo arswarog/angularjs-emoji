@@ -8,6 +8,7 @@ class EmojiService {
     this.recent = [];
     this.index = {};
     this.utf16 = {};
+    this.colors = ['d83cdffb', 'd83cdffc', 'd83cdffd', 'd83cdffe', 'd83cdfff'];
     this._container = null;
 
     /**
@@ -80,14 +81,19 @@ class EmojiService {
    * @param  {String} symbol Сам символ
    * @return {String}        HTML код картинки
    */
-  getBgPosByUtf16(code, symbol) {
+  getBgPosByUtf16(code, delta) {
+    if (!delta) delta = 0;
     let info = this.utf16[code];
     if (!info)
       return false;//console.warn(`Emoji ${code} not exists`);
 
-    let x = Math.round(100000 / 48 * info.x) / 1000;
-    let y = Math.round(100000 / 48 * info.y) / 1000;
-    return `${x}% ${y}%`;
+    let pid = info.pid + delta;
+    let x = Math.floor(pid / 49);
+    let y = pid % 49;
+
+    let px = Math.round(100000 / 48 * x) / 1000;
+    let py = Math.round(100000 / 48 * y) / 1000;
+    return `${px}% ${py}%`;
   }
 
   /**
@@ -151,12 +157,10 @@ class EmojiService {
   replaceEmojis(text, toImg) {
     if (!text) return '';
     console.log('************************************');
-    console.log('************************************');
-    console.log('************************************');
     console.log(text);
 
-    return text.replace(this.emojiRegEx, (v) => this.emojiReplace(v, toImg)).replace(/\uFE0F/g, '');
-    // return this.emojiReplace(text, toImg).replace(/\uFE0F/g, '');
+    // return text.replace(this.emojiRegEx, (v) => this.emojiReplace(v, toImg)).replace(/\uFE0F/g, '');
+    return this.emojiReplace(text, toImg).replace(/\uFE0F/g, '');
   }
 
   /**
@@ -165,8 +169,6 @@ class EmojiService {
    * @param  {Boolean} toImg Преобразовывать в тег IMG (иначе - в I)
    */
   emojiReplace(text, toImg) {
-    console.log('#input: ', text);
-
     /// Превращаю строку в обычный массив символов
     let sym = [];
     for (let i = 0; i < text.length; i++)
@@ -175,32 +177,33 @@ class EmojiService {
     /// Перебираю все символы
     for (let pos = 0; ; pos++) {
       if (pos >= sym.length) break;
-      // console.log(`*** ${pos}`, sym.slice(pos, pos + 5));
 
       let maxlen = -1;
       let found = '';
+      let color = 0;
       for (let i = 0; i < 20; i++) {
         let code = sym.slice(pos, pos + i);
         code = sym.slice(pos, pos + i).map((item) => item.charCodeAt().toString(16).padStart(4, '0')).join('');
-        // console.log(code);
+
         if (code in this.utf16) {
           maxlen = i;
           found = code;
-          console.log('****** found', pos, maxlen, code);
+        } else if (i === maxlen + 2) {
+          color = this.colors.indexOf(code.substr(-8))+1;
+          if (color) {
+            maxlen = i;
+            break;
+          }
         }
       }
 
-      // console.log('result', pos, maxlen, found, sym);
       if (maxlen !== -1) {
         // console.log(found, this.getHtmlTagForEmoji(found));
-        console.log('#before:', sym);
-        sym.splice(pos, maxlen, this.getHtmlTagForEmoji(found));
+        // console.log('#before:', sym);
+        sym.splice(pos, maxlen, this.getHtmlTagForEmoji(found, color));
         console.log('#after :', sym);
       }
-      // console.log('#result:', sym);
-      // console.log(getCode(0), getCode(1), sym);
     }
-
     return sym.join('');
   }
 
@@ -212,7 +215,13 @@ class EmojiService {
    * @return {String}        HTML код картинки
    */
   getHtmlTagForEmoji(code, symbol, toImg) {
-    let pos = this.getBgPosByUtf16(code, symbol);
+    let color = this.colors.indexOf(code.substr(-8));
+    if (~color)
+      color++;
+    else
+      color = 0;
+
+    let pos = this.getBgPosByUtf16(code, symbol, color);
     if (!pos)
       return console.warn(`Emoji ${code} not exists`);
 
