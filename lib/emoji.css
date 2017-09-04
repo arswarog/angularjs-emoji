@@ -66,6 +66,7 @@
     /*margin: 0 3px;*/
 }
 
+img.emoji,
 .emoji {
     width: 20px;
     height: 20px;
@@ -87,7 +88,8 @@
 .emoji.emoji24 {
     width: 24px;
     height: 24px;
-}.emoji {
+}
+.emoji {
   width: 20px;
   height: 20px;
   display: inline-block;

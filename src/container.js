@@ -90,7 +90,8 @@ export default angular.module('arswarog.emoji.container', [])
     }
 
     showContainer(callback, element, orientation) {
-      console.log('container: show');
+      console.log('container: show', callback, element, orientation);
+
       this.callback = callback;
 
       this.selectEmojiCategory(0);
@@ -149,7 +150,7 @@ export default angular.module('arswarog.emoji.container', [])
       if (emoji && emoji in this.$emoji.utf16) {
         emoji = this.$emoji.utf16[emoji];
         this.$emoji.addRecentEmoji(emoji);
-        emoji.bgPos = this.$emoji.getBgPosByUtf16(emoji.utf16);
+        emoji.bgPos = this.$emoji.getBgPosByUtf16(emoji);
         this.callback(emoji);
       }
     }

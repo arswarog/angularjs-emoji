@@ -78,6 +78,7 @@ class InputCtrl {
   // }
 
   linkIt(scope, element, attributes, controller, transcludeFn) {
+    this.$scope = scope;
     console.log('link');
     this.asd = 'asd';
     if (!scope.placeholder)
@@ -86,15 +87,15 @@ class InputCtrl {
     this.messageContainer = element[0];
     this.messageContainer.className = 'pretty-input';
 
-    this.message = document.createElement('div');
-    this.message.className = "message-text";
-    this.message.placeholder = scope.placeholder;
-    this.message.contentEditable = true;
-    this.message.onkeypress = (e) => this.onKeypress(e);
-    this.message.onkeyup = (e) => this.changeMessage(e);
-    this.message.onfocus = (e) => this.onFocus(e);
-    this.message.onclick = (e) => this.onClick(e);
-    this.messageContainer.appendChild(this.message);
+    this.messageInput = document.createElement('div');
+    this.messageInput.className = "message-text";
+    this.messageInput.placeholder = scope.placeholder;
+    this.messageInput.contentEditable = true;
+    this.messageInput.onkeypress = (e) => this.onKeypress(e);
+    this.messageInput.onkeyup = (e) => this.changeMessage(e);
+    this.messageInput.onfocus = (e) => this.onFocus(e);
+    this.messageInput.onclick = (e) => this.onClick(e);
+    this.messageContainer.appendChild(this.messageInput);
 
     this.emojiButton = document.createElement('i');
     this.emojiButton.className = "emoji-button fa fa-smile-o";
@@ -109,8 +110,9 @@ class InputCtrl {
     console.log(this.messageContainer);
 
 
-    this.message.appendChild(document.createTextNode('asdfasd'));
+    this.messageInput.appendChild(document.createTextNode('asdfasd'));
 
+    scope.$watch('value', (value) => this.value = value);
 
     // <div class="messageContainer" ref="messageContainer">
     //   //     <div class="message-text"
@@ -131,14 +133,17 @@ class InputCtrl {
   // }
 
   set value(value) {
-    console.log('set value', value);
+    console.log('set value', value, this.$emoji.replaceEmojis(value));
+    if (this.message == value)
+      return;
 
-    this._value = value;
-    this.html = this.$sce.trustAsHtml(this.encode(value));
+    this.message = value;
+    this.messageInput.innerHTML = this.$emoji.replaceEmojis(value, true);
+    // this.html = this.$sce.trustAsHtml(this.encode(value));
   }
 
   get value() {
-    return this._value;
+    return this.getMessage();
   }
 
   /*** warning! legacy code ******/
@@ -152,22 +157,24 @@ class InputCtrl {
     };
   }
 
-  $emit(event, data) {
-    console.log('$emit "%s"', event, data);
-  }
-
   onKeypress(e) {
     console.log(this);
     this.$emit('keypress', e);
     this.changeMessage();
   }
 
+  toggleSmiles() {
+    this.$emoji.showContainer((emoji) => this.insertSmileAtCursor(emoji), this.emojiButton, this.position);
+  }
+
   insertSmileAtCursor(smile) {
+    console.log('insertSmileAtCursor', smile, this);
+
     const img = document.createElement('IMG');
     img.src = '/static/blank.gif';
     img.className = 'emoji';
     img.dataset.emoji = smile.utf;
-    img.style.backgroundPosition = smile.bgPos;
+    img.style.backgroundPosition = this.$emoji.getBgPosByUtf16(smile);
 
     const sel = window.getSelection();
     if (sel && sel.focusNode) {
@@ -177,25 +184,25 @@ class InputCtrl {
           sel.focusNode.nodeValue = sel.focusNode.nodeValue.substring(sel.focusOffset);
 
           if (before)
-            this.message.insertBefore(document.createTextNode(before), sel.focusNode);
-          this.message.insertBefore(img, sel.focusNode);
+            this.messageInput.insertBefore(document.createTextNode(before), sel.focusNode);
+          this.messageInput.insertBefore(img, sel.focusNode);
           console.log(sel.focusNode.parentNode.childNodes);
           console.log(sel.focusNode.parentNode.childNodes[0]);
           console.log(sel.focusNode.parentNode.childNodes[1]);
           console.log(sel.focusNode.parentNode.childNodes[2]);
           this.setCursorAfterElement(img);
-        } else if (sel.focusNode === this.message) { // root node
-          const item = this.message.childNodes[sel.focusOffset];
-          this.message.insertBefore(img, item);
+        } else if (sel.focusNode === this.messageInput) { // root node
+          const item = this.messageInput.childNodes[sel.focusOffset];
+          this.messageInput.insertBefore(img, item);
           this.setCursorAfterElement(img);
         } else { // not focus
-          this.message.appendChild(img);
+          this.messageInput.appendChild(img);
           this.setCursorToEnd();
         }
       }
     } else {
-      console.log(this, this.message);
-      this.message.appendChild(img);
+      console.log(this, this.messageInput);
+      this.messageInput.appendChild(img);
       this.setCursorToEnd();
     }
 
@@ -227,17 +234,13 @@ class InputCtrl {
   }
 
   setCursorToEnd() {
-    this.message.focus();
+    this.messageInput.focus();
     if (window.getSelection && document.createRange) {
       const range = document.createRange();
-      range.selectNodeContents(this.message);
+      range.selectNodeContents(this.messageInput);
       range.collapse(false);
       this.setRange(range);
     }
-  }
-
-  toggleSmiles() {
-    this.$emoji.showContainer(this.insertSmileAtCursor, this.emojiButton, this.position);
   }
 
   onClick(e) {
@@ -248,7 +251,7 @@ class InputCtrl {
   getMessage() {
     let text = '';
 
-    const message = this.message;
+    const message = this.messageInput;
 
     if (message.childNodes.length && message.childNodes[0].nodeName === 'BR')
       message.removeChild(message.childNodes[0]);
@@ -264,13 +267,14 @@ class InputCtrl {
       } else node.parentNode.removeChild(node);
     }
 
-    return text.trim();
+    this.message = text.trim()
+    return this.message;
   }
 
   sendMessage() {
     this.$emit('sendmessage', this.getMessage());
-    this.message.innerHTML = '';
-    this.message.focus();
+    this.messageInput.innerHTML = '';
+    this.messageInput.focus();
   }
 
   changeMessage() {
@@ -281,6 +285,13 @@ class InputCtrl {
 
   onFocus() {
     this.$emit('focus');
+  }
+
+  $emit(event, data) {
+    console.log('$emit "%s"', event, data);
+    switch(event) {
+      case 'input': this.$scope.value = data;
+    }
   }
 }
 

@@ -76,27 +76,6 @@ class EmojiService {
   }
 
   /**
-   * Возвращает background-position по utf16 доку символа
-   * @param  {String} code   Код символа
-   * @param  {String} symbol Сам символ
-   * @return {String}        HTML код картинки
-   */
-  getBgPosByUtf16(code, delta) {
-    if (!delta) delta = 0;
-    let info = this.utf16[code];
-    if (!info)
-      return false;//console.warn(`Emoji ${code} not exists`);
-
-    let pid = info.pid + delta;
-    let x = Math.floor(pid / 49);
-    let y = pid % 49;
-
-    let px = Math.round(100000 / 48 * x) / 1000;
-    let py = Math.round(100000 / 48 * y) / 1000;
-    return `${px}% ${py}%`;
-  }
-
-  /**
    * Добавления смайла в списк последних использованных
    * @param emoji
    */
@@ -178,6 +157,8 @@ class EmojiService {
     for (let pos = 0; ; pos++) {
       if (pos >= sym.length) break;
 
+      let info = '';
+
       let maxlen = -1;
       let found = '';
       let color = 0;
@@ -188,10 +169,12 @@ class EmojiService {
         if (code in this.utf16) {
           maxlen = i;
           found = code;
+          info = this.utf16[code];
         } else if (i === maxlen + 2) {
-          color = this.colors.indexOf(code.substr(-8))+1;
+          color = this.colors.indexOf(code.substr(-8)) + 1;
           if (color) {
             maxlen = i;
+            found = code;
             break;
           }
         }
@@ -200,8 +183,8 @@ class EmojiService {
       if (maxlen !== -1) {
         // console.log(found, this.getHtmlTagForEmoji(found));
         // console.log('#before:', sym);
-        sym.splice(pos, maxlen, this.getHtmlTagForEmoji(found, color));
-        console.log('#after :', sym);
+        sym.splice(pos, maxlen, this.getHtmlTagForEmoji(info, color, toImg));
+        // console.log('#after :', sym);
       }
     }
     return sym.join('');
@@ -214,21 +197,49 @@ class EmojiService {
    * @param  {Boolean} toImg Преобразовывать в тег IMG (иначе - в I)
    * @return {String}        HTML код картинки
    */
-  getHtmlTagForEmoji(code, symbol, toImg) {
-    let color = this.colors.indexOf(code.substr(-8));
-    if (~color)
-      color++;
-    else
-      color = 0;
-
-    let pos = this.getBgPosByUtf16(code, symbol, color);
+  getHtmlTagForEmoji(emoji, color, toImg) {
+    let pos = this.getBgPosByUtf16(emoji, color);
     if (!pos)
       return console.warn(`Emoji ${code} not exists`);
 
+    let utf = emoji.utf;
+    if (color)
+      utf += ['', '\ud83c\udffb', '\ud83c\udffc', '\ud83c\udffd', '\ud83c\udffe', '\ud83c\udfff'][color];
+    // let info = this.utf16[code];
+
     if (toImg)
-      return `<img class="emoji" style="background-position: ${pos}">`;
+      return `<img class="emoji" data-emoji="${utf}" style="background-position: ${pos}">`;
     else
-      return `<i class="emoji" style="background-position: ${pos}">&nbsp;</i>`;
+      return `<i class="emoji" data-emoji="${utf}" style="background-position: ${pos}">&nbsp;</i>`;
+  }
+
+  /**
+   * Возвращает background-position по utf16 доку символа
+   * @param  {String} code   Код символа
+   * @param  {String} symbol Сам символ
+   * @return {String}        HTML код картинки
+   */
+  getBgPosByUtf16(emoji, delta) {
+    if (!delta) delta = 0;
+    // let info = this.utf16[code];
+    // if (!info) {
+    //   let color = this.colors.indexOf(code.substr(-8)) + 1;
+    //   if (!color) return false;
+    //   code = code.substr(0, code.length - 8);
+    //   info = this.utf16[code];
+    //   if (info)
+    //     delta = color;
+    //   else
+    //     return false;//console.warn(`Emoji ${code} not exists`);
+    // }
+
+    let pid = emoji.pid + delta;
+    let x = Math.floor(pid / 49);
+    let y = pid % 49;
+
+    let px = Math.round(100000 / 48 * x) / 1000;
+    let py = Math.round(100000 / 48 * y) / 1000;
+    return `${px}% ${py}%`;
   }
 }
 

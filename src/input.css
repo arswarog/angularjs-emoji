@@ -36,6 +36,11 @@
     background-color: transparent;
 }
 
+.pretty-input .message-text img,
+.pretty-input .message-text img.emoji {
+    border: 0;
+}
+
 .pretty-input .message-text:empty:before {
     content: attr(placeholder);
 }
