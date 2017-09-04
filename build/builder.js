@@ -26,9 +26,12 @@ module.exports = class Builder {
     });
   }
 
-  bgPositionBy(x, y) {
-    let rx = Math.round(100000 / 48 * x) / 1000;
-    let ry = Math.round(100000 / 48 * y) / 1000;
+  bgPositionBy(pid) {
+    let dx = Math.floor(pid / 49);
+    let dy = pid % 49;
+
+    let rx = Math.round(100000 / 48 * dx) / 1000;
+    let ry = Math.round(100000 / 48 * dy) / 1000;
     return `${rx}% ${ry}%`;
   }
 
@@ -43,8 +46,6 @@ module.exports = class Builder {
         shorts: data.short_names,
         text: data.text,
         texts: data.texts,
-        x: data.sheet_x,
-        y: data.sheet_y,
         pid: data.sheet_x * 49 + data.sheet_y,
       };
 
@@ -131,9 +132,9 @@ module.exports = class Builder {
     for (let catname in data) {
       data[catname].forEach(item => {
         if (short)
-          css += `.emoji.emoji-${item.short} { background-position: ${this.bgPositionBy(item.x, item.y)}; }\n`;
+          css += `.emoji.emoji-${item.short} { background-position: ${this.bgPositionBy(item.pid)}; }\n`;
         if (unified)
-          css += `.emoji.emoji-${item.unified} { background-position: ${this.bgPositionBy(item.x, item.y)}; }\n`;
+          css += `.emoji.emoji-${item.unified} { background-position: ${this.bgPositionBy(item.pid)}; }\n`;
       })
     }
     return css;
